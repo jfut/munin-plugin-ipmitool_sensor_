@@ -300,6 +300,7 @@ sub temp_threshold {
     $lcr = $ENV{temp_lower_critical};
   } elsif (! &is_valid_value($lcr)) {
     if ($lcr eq 'inf') { $lcr = ''; }
+    elsif (&is_valid_value($lnc)) { $lcr = $lnc - 5; }
     else { $lcr = 5; }
   }
   # lnc: lower warning
@@ -321,6 +322,7 @@ sub temp_threshold {
     $ucr = $ENV{temp_upper_critical};
   } elsif (! &is_valid_value($ucr)) {
     if ($ucr eq 'inf') { $ucr = ''; }
+    elsif (&is_valid_value($unc)) { $ucr = $unc + 5; }
     else { $ucr = '70'; }
   }
 
@@ -430,7 +432,6 @@ sub is_valid_value() {
   # HP ProLiant DL360 G10
   DL360 G10 02-CPU | 40.000     | degrees C  | ok    | na        | na        | na        | na        | 70.000    | na
   DL360 G10 27-LOM | 60.000     | degrees C  | ok    | na        | 10        | na        | na        | 100.000   | na
-
 
 =head2 IPMITOOL SDR
 
