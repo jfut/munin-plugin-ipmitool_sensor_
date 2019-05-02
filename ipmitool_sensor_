@@ -215,8 +215,10 @@ sub get_sensor_data {
 sub get_sensor_items {
   my ($line, $regex) = @_;
   my @items = split(/\s*\|\s*/, $line);
-  my ($label, $value, $unit, $lcr, $lnc, $unc, $ucr)
-    = (trim($items[0]), trim($items[1]), trim($items[2]), trim($items[5]), trim($items[6]), trim($items[7]), trim($items[8]));
+  my ($label, $value, $unit, $lnr, $lcr, $lnc, $unc, $ucr, $unr)
+    = (trim($items[0]), trim($items[1]), trim($items[2]),
+        trim($items[4]), trim($items[5]), trim($items[6]),
+        trim($items[7]), trim($items[8]), trim($items[9]));
   if ($#items == 9) {
      # ipmitool sensor
   } elsif ($#items == 2) {
@@ -225,6 +227,16 @@ sub get_sensor_items {
         $value = trim($`);
         $unit = trim($1);
      }
+  }
+
+  # some boards have non-recoverable and critical value only, but non-critical value don't.
+  # - HP ProLiant DL360 G7
+  # Temp 1  | 25.000     | degrees C  | ok    | 5         | 10        | na        | na        | 42.000    | 46.000
+  if (&is_valid_value($lnr) && &is_valid_value($lcr) && ! &is_valid_value($lnc)) {
+    ($lcr, $lnc) = ($lnr, $lcr);
+  }
+  if (! &is_valid_value($unc) && &is_valid_value($ucr) && &is_valid_value($unr)) {
+    ($unc, $ucr) = ($ucr, $unr);
   }
 
   # some boards show data in incorrect order.
@@ -239,6 +251,7 @@ sub get_sensor_items {
   if (&is_valid_value($lnc) && &is_valid_value($unc) && $lnc > $unc || $lnc eq 'inf') {
     ($lcr, $lnc, $unc, $ucr) = ($ucr, $unc, $lnc, $lcr);
   }
+
   return ($label, $value, $unit, $lcr, $lnc, $unc, $ucr);
 }
 
@@ -353,25 +366,30 @@ sub is_valid_value() {
 
 =head1 HOW TO TEST
 
-  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_volt
-  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_volt config
-  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_volt suggest
-  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_volt autoconf
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan config
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan suggest
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan autoconf
+
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan config
   fan_warn_percent=50 fan_lower_critical=100 fan_upper_critical=1000 \
     cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_fan config
+
+  cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_temp config
   temp_lower_warning=1 temp_lower_critical=2 temp_upper_critical=71 temp_upper_warning=72 \
     cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_temp config
+
   volt_warn_percent=50 \
     cache_file=ipmitool_sensor_ cache_expires=-1 ./ipmitool_sensor_volt config
 
 =head1 TEST DATA
 
-  unr  Upper Non-Recoverable
-  ucr  Upper Critical
-  unc  Upper Non-Critical
-  lnc  Lower Non-Critical
-  lcr  Lower Critical
   lnr  Lower Non-Recoverable
+  lcr  Lower Critical
+  lnc  Lower Non-Critical
+  unc  Upper Non-Critical
+  ucr  Upper Critical
+  unr  Upper Non-Recoverable
 
 =head2 IPMITOOL SENSOR
 
@@ -404,6 +422,10 @@ sub is_valid_value() {
   Temp 7           | na         | degrees C  | na    | na        | na        | 32.000    | na        | na        | na
   Power Meter      | 214.000    | Watts      | cr    | na        | na        | 384.000   | na        | na        | na
   Power Meter 2    | 220.000    | watts      | cr    | na        | na        | 384.000   | na        | na        | na
+  # HP ProLiant DL360 G7
+  DL360 G7 Temp 1  | 25.000     | degrees C  | ok    | na        | na        | na        | na        | 42.000    | 46.000    
+  DL360 G7 Temp 2  | 40.000     | degrees C  | ok    | na        | na        | na        | na        | 82.000    | 83.000    
+  DL360 G7 Temp 3  | 40.000     | degrees C  | ok    | 10        | 5         | na        | na        | 82.000    | 83.000    
 
 =head2 IPMITOOL SDR
 
