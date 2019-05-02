@@ -121,8 +121,10 @@ If you want to use "ipmitool sdr", add the following:
   Power Meter 2    | 220.000    | watts      | cr    | na        | na        | 384.000   | na        | na        | na
   # HP ProLiant DL360 G7
   DL360 G7 Temp 1  | 25.000     | degrees C  | ok    | na        | na        | na        | na        | 42.000    | 46.000
-  DL360 G7 Temp 2  | 40.000     | degrees C  | ok    | na        | na        | na        | na        | 82.000    | 83.000
-  DL360 G7 Temp 3  | 40.000     | degrees C  | ok    | 10        | 5         | na        | na        | 82.000    | 83.000
+  DL360 G7 Temp 2  | 40.000     | degrees C  | ok    | 5         | 10        | na        | na        | 82.000    | 83.000
+  # HP ProLiant DL360 G10
+  DL360 G10 02-CPU | 40.000     | degrees C  | ok    | na        | na        | na        | na        | 70.000    | na
+  DL360 G10 27-LOM | 60.000     | degrees C  | ok    | na        | 10        | na        | na        | 100.000   | na
 ```
 
 ### IPMITOOL SDR
